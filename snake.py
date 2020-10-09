@@ -6,65 +6,68 @@ ROW = 19
 GRID_CELL = 40
 RESOLUTION = COL * GRID_CELL, ROW * GRID_CELL
 FPS = 8
-GRID = [[pygame.Rect(x * GRID_CELL, y * GRID_CELL, GRID_CELL, GRID_CELL) for y in range(ROW)] for x in range(COL)]
-BACKGROUND = pygame.Surface(RESOLUTION)
+GRID = []
+AVIABLE_COORDS = set()
+for x in range(COL):
+    GRID.append([])
+    for y in range(ROW):
+        GRID[x].append(pygame.Rect(x * GRID_CELL, y * GRID_CELL, GRID_CELL, GRID_CELL))
+        AVIABLE_COORDS.add((x, y))
 
 class Snake:
-    default_x = 0
-    default_y = 10
-    default_len = 3
-    default_head_x = 2
-    default_head_y = 10
     color = (76, 122, 244)
 
     def __init__(self):
-        self.parts = [GRID[self.default_x + i][self.default_y] for i in range(self.default_len)]
+        self.parts = [(0 + i, 9) for i in range(3)]
         self.dx = 1
         self.dy = 0
-        self.len = self.default_len
-        self.head_x = self.default_head_x
-        self.head_y = self.default_head_y
+        self.head_x = 2
+        self.head_y = 9
     
     def move(self, apple):
         self.head_x += self.dx
         self.head_y += self.dy
-        
-        if self.head_x < 0 or self.head_x > COL - 1 or self.head_y < 0 or self.head_y > ROW - 1 or GRID[self.head_x][self.head_y].collidelist(self.parts[:-2]) != -1:
+        if self.head_x < 0 or self.head_x > COL - 1 or self.head_y < 0 or self.head_y > ROW - 1 or (self.head_x, self.head_y) in set(self.parts):
             self.__init__()
+            apple.__init__()
         elif GRID[self.head_x][self.head_y].colliderect(GRID[apple.x][apple.y]):
-            self.parts.append(GRID[self.head_x][self.head_y])
-            self.len += 1
-            apple.change_coords() 
+            self.parts.append((self.head_x, self.head_y))
+            apple.aviable_coords.discard((self.head_x, self.head_y))
+            apple.change_coords()
         else:
-            self.parts.append(GRID[self.head_x][self.head_y])
-            self.parts = self.parts[-self.len:]
+            self.parts.append((self.head_x, self.head_y))
+            apple.aviable_coords.discard((self.head_x, self.head_y))
+            apple.aviable_coords.add((self.parts[0][0], self.parts[0][1]))
+            self.parts = self.parts[1:]
 
     def change_vector(self, event):
-        if event.key == pygame.K_LEFT :
+        if event.key == pygame.K_LEFT and self.dx != 1:
             self.dx , self.dy  = -1, 0
-        elif event.key == pygame.K_RIGHT: 
+        elif event.key == pygame.K_RIGHT and self.dx != -1: 
             self.dx , self.dy  = 1, 0
-        elif event.key == pygame.K_UP: 
+        elif event.key == pygame.K_UP and self.dy != 1: 
             self.dx , self.dy  = 0, -1
-        elif event.key == pygame.K_DOWN: 
+        elif event.key == pygame.K_DOWN and self.dy != -1: 
             self.dx , self.dy  = 0, 1
 
     def draw(self, scr):
-        for part in self.parts:
-            pygame.draw.rect(scr, self.color, part)
+        for x, y in self.parts:
+            pygame.draw.rect(scr, self.color, GRID[x][y])
 
 
 class Apple:
+    
     def __init__(self):
-        self.x = random.randrange(0, COL)
-        self.y = random.randrange(0, ROW)
+        self.aviable_coords = AVIABLE_COORDS.difference({(0, 9), (1, 9), (2, 9)})
+        self.x, self.y = self.aviable_coords.pop()
     
     def draw(self, scr):
         pygame.draw.rect(scr, (228, 73, 27), GRID[self.x][self.y])
     
     def change_coords(self):
-        self.x = random.randrange(0, COL)
-        self.y = random.randrange(0, ROW)
+        self.x, self.y = self.aviable_coords.pop()
+        print(len(self.aviable_coords))
+
 
 if __name__ == "__main__":
     pygame.init()
