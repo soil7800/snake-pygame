@@ -28,13 +28,13 @@ class Snake:
     def move(self, apple):
         self.head_x += self.dx
         self.head_y += self.dy
-        if GRID[self.head_x][self.head_y].colliderect(GRID[apple.x][apple.y]):
+        
+        if self.head_x < 0 or self.head_x > COL - 1 or self.head_y < 0 or self.head_y > ROW - 1 or GRID[self.head_x][self.head_y].collidelist(self.parts[:-2]) != -1:
+            self.__init__()
+        elif GRID[self.head_x][self.head_y].colliderect(GRID[apple.x][apple.y]):
             self.parts.append(GRID[self.head_x][self.head_y])
             self.len += 1
-            apple.change_coords()
-        elif self.head_x < 0 or self.head_x > COL - 1 or self.head_y < 0 or self.head_y > ROW - 1 or GRID[self.head_x][self.head_y].collidelist(self.parts[:-2]) != -1:
-            print('exit')
-            exit() 
+            apple.change_coords() 
         else:
             self.parts.append(GRID[self.head_x][self.head_y])
             self.parts = self.parts[-self.len:]
