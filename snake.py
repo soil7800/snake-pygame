@@ -72,8 +72,7 @@ class Apple:
     
     def __init__(self):
         self.aviable_coords = AVIABLE_COORDS.difference({(0, 9), (1, 9), (2, 9)})
-        self.x, self.y = self.aviable_coords.pop()
-    
+        self.x, self.y = random.choice(tuple(self.aviable_coords))
     def draw(self, scr):
         pygame.draw.rect(scr, (228, 73, 27), GRID[self.x][self.y])
     
